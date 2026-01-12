@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<title>🔴 LIVE Brain Challenge</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<style>
+body{margin:0;background:radial-gradient(circle at top,#220000,#000);font-family:Arial;color:#fff;display:flex;justify-content:center;align-items:center;height:100vh;overflow:hidden;}
+.box{width:96%;max-width:720px;background:#000;border-radius:25px;padding:20px;text-align:center;box-shadow:0 0 40px red;}
+.live{color:red;font-weight:bold;animation:blink 1s infinite;}
+@keyframes blink{50%{opacity:0}}
+.robot{font-size:60px;animation:bounce 0.8s infinite alternate;}
+@keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-12px)}}
+h1{color:#ffcc00}
+#q{font-size:23px;margin:15px}
+.opt{background:#fff;color:#000;padding:10px;margin:6px 0;border-radius:12px;font-weight:bold;cursor:pointer;transition:0.3s;}
+.opt:hover{background:#ff6b6b;color:#fff;}
+#timer-container{position:relative;width:100px;height:100px;margin:20px auto;}
+#timer-circle{stroke-dasharray: 440; stroke-dashoffset: 0; stroke-linecap:round; transition: stroke-dashoffset 1s linear;}
+#timer-svg{transform: rotate(-90deg);}
+#timer-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:28px;color:#00ffcc;font-weight:bold;}
+#taunt{color:#ff6666;font-weight:bold;margin-top:8px;animation:blink 1s infinite;}
+.score{margin-top:10px;background:#111;padding:8px;border-radius:10px;font-size:14px;color:#00ff99;}
+.footer{margin-top:8px;font-size:12px;color:#aaa;}
+</style>
+</head>
+<body>
+<div class="box">
+<div class="live">🔴 LIVE 24×7</div>
+<div class="robot">🤖</div>
+<h1>99% लोग यहाँ फेल 😱</h1>
+<div id="q"></div>
+<div class="opt" id="a"></div>
+<div class="opt" id="b"></div>
+<div class="opt" id="c"></div>
+<div class="opt" id="d"></div>
+
+<!-- Timer Circle -->
+<div id="timer-container">
+<svg id="timer-svg" width="100" height="100">
+<circle cx="50" cy="50" r="35" stroke="#ff6b6b" stroke-width="8" fill="none" id="timer-circle"/>
+</svg>
+<div id="timer-text">15</div>
+</div>
+
+<div id="taunt"></div>
+<div class="score">
+🔥 LIVE SCORE<br>
+A: <span id="sa">12</span> |
+B: <span id="sb">27</span> |
+C: <span id="sc">19</span> |
+D: <span id="sd">41</span>
+</div>
+<div class="footer">
+👇 Comment में A / B / C / D लिखो 👇
+</div>
+</div>
+
+<script>
+// DOM Elements
+const a=document.getElementById("a");
+const b=document.getElementById("b");
+const c=document.getElementById("c");
+const d=document.getElementById("d");
+const timerText=document.getElementById("timer-text");
+const timerCircle=document.getElementById("timer-circle");
+const taunt=document.getElementById("taunt");
+const sa=document.getElementById("sa");
+const sb=document.getElementById("sb");
+const sc=document.getElementById("sc");
+const sd=document.getElementById("sd");
+const qDiv=document.getElementById("q");
+
+// Quiz questions (सभी सवाल सही JS syntax में)
+const quiz=[
+{q:"भारत की राजधानी क्या है?",o:["दिल्ली","मुंबई","कोलकाता","चेन्नई"]},
+{q:"सबसे तेज जानवर?",o:["चीता","शेर","घोड़ा","कुत्ता"]},
+{q:"1 घंटे में कितने मिनट?",o:["60","30","90","100"]},
+{q:"सूरज किस दिशा से निकलता है?",o:["पूरब","पश्चिम","उत्तर","दक्षिण"]},
+{q:"ताजमहल कहाँ है?",o:["आगरा","दिल्ली","जयपुर","लखनऊ"]},
+{q:"2+2×2=?",o:["6","8","4","2"]},
+{q:"भारत का राष्ट्रीय पशु?",o:["बाघ","शेर","हाथी","घोड़ा"]},
+{q:"भारत का राष्ट्रीय पक्षी?",o:["मोर","तोता","कबूतर","कोयल"]},
+{q:"भारत का राष्ट्रीय फूल?",o:["कमल","गुलाब","सूरजमुखी","लिली"]},
+{q:"भारत का राष्ट्रीय फल?",o:["आम","सेब","केला","संतरा"]},
+{q:"भारत का राष्ट्रीय वृक्ष?",o:["बरगद","नीम","पीपल","आम"]},
+{q:"भारत का राष्ट्रीय खेल?",o:["हॉकी","क्रिकेट","कबड्डी","फुटबॉल"]},
+{q:"भारत की मुद्रा क्या है?",o:["रुपया","डॉलर","येन","पाउंड"]},
+{q:"भारत कब आज़ाद हुआ?",o:["1947","1950","1942","1930"]},
+{q:"संविधान दिवस कब मनाया जाता है?",o:["26 नवम्बर","15 अगस्त","26 जनवरी","2 अक्टूबर"]},
+{q:"1 मिनट में कितने सेकंड?",o:["60","100","30","90"]},
+{q:"भारत की राष्ट्रीय भाषा?",o:["हिंदी","अंग्रेज़ी","संस्कृत","कोई नहीं"]},
+{q:"10 का आधा कितना?",o:["5","10","20","2"]},
+{q:"RAM का पूरा नाम?",o:["Random Access Memory","Read Access Memory","Rapid Access Memory","Run Access Memory"]},
+{q:"CPU का पूरा नाम?",o:["Central Processing Unit","Computer Power Unit","Control Process Unit","Central Program Unit"]},
+{q:"मोबाइल का दिमाग किसे कहते हैं?",o:["CPU","RAM","Battery","Screen"]},
+{q:"UNO का पूरा नाम?",o:["United Nations Organization","Union Nation Office","United National Office","Universal Nation Org"]},
+{q:"WHO का पूरा नाम?",o:["World Health Organization","World Help Org","Health Org","World Org"]},
+{q:"ATM का पूरा नाम?",o:["Automated Teller Machine","Any Time Money","Auto Transfer Money","All Time Money"]},
+{q:"WWW का पूरा नाम?",o:["World Wide Web","World Web Wide","Web World Wide","Wide World Web"]}
+// आप और सवाल इसी तरह जोड़ सकते हैं, ध्यान रहे कि हर object के बाद comma होना चाहिए
+];
+
+const taunts=["😈 99% यहाँ गलती करते हैं","🔥 जल्दी Comment करो","🧠 Dimag hai to bata","⏰ Time almost over","😱 Sab confuse ho gaye"];
+
+let time=15;
+let timerInterval;
+let askedQuestions=[];
+
+// Speak function
+function speak(txt){
+speechSynthesis.cancel();
+let u=new SpeechSynthesisUtterance(txt);
+u.lang="hi-IN";
+u.rate=1;
+speechSynthesis.speak(u);
+}
+
+// Random score
+function randScore(){
+sa.innerText=Math.floor(Math.random()*50);
+sb.innerText=Math.floor(Math.random()*50);
+sc.innerText=Math.floor(Math.random()*50);
+sd.innerText=Math.floor(Math.random()*50);
+}
+
+// Timer function with circle animation
+function startTimer(){
+clearInterval(timerInterval);
+time=15;
+timerText.innerText=time;
+timerCircle.style.strokeDashoffset=0;
+let total = 440; // circle circumference
+timerInterval=setInterval(()=>{
+time--;
+timerText.innerText=time;
+let progress = ((15-time)/15)*total;
+timerCircle.style.strokeDashoffset=progress;
+if(time<=0){
+clearInterval(timerInterval);
+nextQuestion();
+}
+},1000);
+}
+
+// Load next question
+function nextQuestion(){
+if(askedQuestions.length===quiz.length) askedQuestions=[]; // reset after all done
+let remaining=quiz.filter((_,i)=>!askedQuestions.includes(i));
+let idx=Math.floor(Math.random()*remaining.length);
+let questionIndex=quiz.indexOf(remaining[idx]);
+askedQuestions.push(questionIndex);
+load(questionIndex);
+}
+
+// Load question
+function load(index){
+let q=quiz[index];
+qDiv.innerText=q.q;
+a.innerText="A. "+q.o[0];
+b.innerText="B. "+q.o[1];
+c.innerText="C. "+q.o[2];
+d.innerText="D. "+q.o[3];
+taunt.innerText=taunts[Math.floor(Math.random()*taunts.length)];
+randScore();
+speak(q.q+" Comment में answer लिखो");
+startTimer();
+}
+
+// Start first question
+nextQuestion();
+</script>
+</body>
+</html>
